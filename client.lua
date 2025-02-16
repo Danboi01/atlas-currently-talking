@@ -1,10 +1,10 @@
-local startingHeight = 0.01 -- How far it is from top of screen. Limit is 0.10
-local titleColor = '~b~' -- Currently Talking Text
-local outerIdColor = '~w~' -- [] Brackets 
-local innerIdColor = '~w~' -- PlayerID
-local defaultNameColor = '~w~' -- PlayerName
+local startingHeight = 0.01 
+local titleColor = '~b~' 
+local outerIdColor = '~w~' 
+local innerIdColor = '~w~' 
+local defaultNameColor = '~w~' 
 
-function drawTxt(x, y, width, height, scale, text, r, g, b, a)
+function drawTxt(x, y, scale, text)
     SetTextFont(6)
     SetTextScale(scale, scale)
     SetTextCentre(true)
@@ -17,15 +17,21 @@ end
 
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(0)
+        local displayed = false
         for _, player in ipairs(GetActivePlayers()) do
-            local talking = NetworkIsPlayerTalking(player)
-            local playerId = GetPlayerServerId(player)
-            local playerName = GetPlayerName(player)
-            local name = outerIdColor .. '[' .. innerIdColor .. playerId .. outerIdColor .. '] ' .. defaultNameColor .. playerName
-            if talking then
-                drawTxt(0.5, startingHeight, 1.0, 1.0, 0.35, titleColor .. "Currently Talking: \n" .. name, 255, 255, 255, 255)
+            if NetworkIsPlayerTalking(player) then
+                local playerId = GetPlayerServerId(player)
+                local playerName = GetPlayerName(player)
+                local name = string.format("%s[%s%d%s] %s%s", outerIdColor, innerIdColor, playerId, outerIdColor, defaultNameColor, playerName)
+                drawTxt(0.5, startingHeight, 0.35, titleColor .. "Currently Talking:\n" .. name)
+                displayed = true
+                break 
             end
+        end
+        if not displayed then
+            Citizen.Wait(100) 
+        else
+            Citizen.Wait(0) 
         end
     end
 end)
